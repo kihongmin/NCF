@@ -13,8 +13,8 @@ class Preprocess:
         #self.test = pd.read_json(test_path, typ='frame')
         self.concat_train_val()
         self.min_value = min_value
-        self.tag_encoder, self.tag_decoder = makeDict(self.total_plylst['tags'])
-        self.song_encoder, self.song_decoder = makeDict(self.total_plylst['songs'])
+        self.tag_encoder, self.tag_decoder = makeDict(self.total_plylst['tags'],min_value)
+        self.song_encoder, self.song_decoder = makeDict(self.total_plylst['songs'],min_value)
         self.plylst_encoder, self.plylst_decoder = makeDict(self.total_plylst['id'])
 
     def __call__(self):
@@ -31,7 +31,7 @@ class Preprocess:
         self.n_val = len(self.val)
         self.total_plylst = pd.concat([self.train,self.test],ignore_index=True)
 
-    def makeDict(df, min_value):
+    def makeDict(df, min_value=0):
         c = Counter()
         #if isinstance(df, pd.DataFrame):
         if isinstance(df[0], list):
