@@ -11,7 +11,7 @@ class GMF_layer(Layer):
     def call(self,inputs):
         input_plylst, input_item = inputs
         plylst = self.mf_embedding_plylst(input_plylst)
-        item = self.mf_embedding_plylst(input_item)
+        item = self.mf_embedding_item(input_item)
         return tf.math.multiply(plylst, item)
 
 class MLP_layer(Layer):
