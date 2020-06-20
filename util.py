@@ -24,12 +24,10 @@ class Preprocess:
         self.total_plylst['id'] = self.total_plylst['id'].apply(lambda x: self.plylst_encoder[x])
 
     def make_longform(self, item):
-        dataset = np.zeros((sum(self.total_plylst[item].apply(len)),3))
-        t = 0
+        dataset = dict()
         for i in self.total_plylst.index:
             for item_id in self.total_plylst.iloc[i][item]:
-                dataset[t] = np.array([i, item_id, 1])
-                t+=1
+                dataset[(i,item_id)] = 1                
         return dataset
 
     def concat_train_val(self):
