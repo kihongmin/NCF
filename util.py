@@ -16,13 +16,21 @@ class Preprocess:
         self.tag_encoder, self.tag_decoder = self.makeDict(self.total_plylst['tags'],min_value)
         self.song_encoder, self.song_decoder = self.makeDict(self.total_plylst['songs'],min_value)
         self.plylst_encoder, self.plylst_decoder = self.makeDict(self.total_plylst['id'])
+        self.encoding_data()
 
-    def __call__(self):
+    def encoding_data(self):
         self.total_plylst['songs'] = self.total_plylst['songs'].apply(lambda x: list(map(lambda y:self.song_encoder[y],list(filter(lambda z: z in self.song_encoder,x)))))
         self.total_plylst['tags'] = self.total_plylst['tags'].apply(lambda x: list(map(lambda y:self.tag_encoder[y],list(filter(lambda z: z in self.tag_encoder,x)))))
         self.total_plylst['id'] = self.total_plylst['id'].apply(lambda x: self.plylst_encoder[x])
 
-        return self.total_plylst[['songs','tags','id']]
+    def make_longform(self, item):
+        dataset = np.zeros((sum(self.total_plylst[item].apply(len)),3))
+        t = 0
+        for i in self.total_plylst.index:
+            for item_id in self.total_plylst.iloc[i][item]:
+                dataset[t] = np.array([i, item_id, 1])
+                t+=1
+        return dataset
 
     def concat_train_val(self):
         self.train['istrain'] = 1
