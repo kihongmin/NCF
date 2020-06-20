@@ -29,7 +29,7 @@ class Preprocess:
         self.val['istrain'] = 0
         self.n_train = len(self.train)
         self.n_val = len(self.val)
-        self.total_plylst = pd.concat([train,test],ignore_index=True)
+        self.total_plylst = pd.concat([self.train,self.test],ignore_index=True)
 
     def makeDict(df, min_value):
         c = Counter()
