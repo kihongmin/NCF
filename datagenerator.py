@@ -32,8 +32,10 @@ class DataGenerator(tf.keras.utils.Sequence):
         self._n_item = len(item_dict)
 
     def __len__(self):
-        return self._total_len // self._batch_size + 1
-
+        if self._shuffle == True:
+            return (self._total_len * (self._negative+1)) // self._batch_size + 1
+        else:
+            return self._total_len // self._batch_size + 1
     def __getitem__(self, index):
         begin = index * self._batch_size
 
