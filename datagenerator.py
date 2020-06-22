@@ -3,11 +3,12 @@ import numpy as np
 import scipy.sparse as spr
 
 class DataGenerator(tf.keras.utils.Sequence):
-    def __init__(self, user, item, batch_size, shuffle=True):
+    def __init__(self, user, item, batch_size, negative, shuffle=True):
         self._user = user
         self._item = item
         self._batch_size = batch_size
         self._shuffle = shuffle
+        self._negative = negative
         self._total_len = item.apply(len).sum()
         self.make_one_hot_dict()
         self.make_dok_mat()
@@ -26,6 +27,9 @@ class DataGenerator(tf.keras.utils.Sequence):
                     item_dict[song] = [u]
         self._user_dict = user_dict
         self._item_dict = item_dict
+
+        self._n_user = len(user_dict)
+        self._n_item = len(item_dict)
 
     def __len__(self):
         return self._total_len // self._batch_size + 1
@@ -51,12 +55,37 @@ class DataGenerator(tf.keras.utils.Sequence):
         user_data = np.zeros((len(indices), len(self._item_dict)))
         item_data = np.zeros((len(indices), len(self._user_dict)))
 
+        if self._shuffle == True:
+            neg_user_data = np.zeros((len(indices)*self._negative, len(self._item_dict)))
+            neg_item_data = np.zeros((len(indices)*self._negative, len(self._user_dict)))
+
         for i, ID in enumerate(indices):
-            user_index = self._user_dict[self._longform[ID][0]]
-            item_index = self._item_dict[self._longform[ID][1]]
+            user = self._longform[ID][0]
+            item = self._longform[ID][1]
+            user_index = self._user_dict[user]
+            item_index = self._item_dict[item]
             user_data[i][user_index] = 1
             item_data[i][item_index] = 1
+
         labels = np.ones(len(indices))
+
+        if self._shuffle == True:
+            c = 0
+            for _, ID in enumerate(indices):
+                user = self._longform[ID][0]
+                for _ in range(self._negative):
+                    neg_item = np.random.randint(self._n_item)
+                    while self._dok_matrix.get((user,neg_item)):
+                        neg_item = np.random.randint(self._n_item)
+                    user_index = self._user_dict[user]
+                    neg_item_index = self._item_dict[neg_item]
+
+                    neg_user_data[c][user_index] = 0
+                    neg_item_data[c][neg_item_index] = 0
+                    c+=1
+            user_data = np.vstack([user_data,neg_user_data])
+            item_data = np.vstack([item_data,neg_item_data])
+            labels = np.ones(len(indices)*(self._negative + 1))
 
         return (user_data,item_data), labels
 
