@@ -45,7 +45,7 @@ class Preprocess:
         if item_name == 'songs':
             self.spr_songs = spr.csr_matrix((item_dat,(item_row,item_col)), shape=(self.n_plylst,self.n_song)).todok()
         elif item_name == 'tags':
-            self.spr_tags = spr.csr_matrix((item_dat,(item_row,item_col)), shape=(self.n_plylst,self.n_song)).todok()
+            self.spr_tags = spr.csr_matrix((item_dat,(item_row,item_col)), shape=(self.n_plylst,self.n_tag)).todok()
 
     def get_train_instances(self,negative=True):
         user_input, item_input, labels = [], [], []
