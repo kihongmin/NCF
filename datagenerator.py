@@ -33,9 +33,10 @@ class DataGenerator(tf.keras.utils.Sequence):
 
     def __len__(self):
         if self._shuffle == True:
-            return (self._total_len * (self._negative+1)) // self._batch_size + 1
+            return ((self._total_len * (self._negative+1)) // self._batch_size) + 1
         else:
-            return self._total_len // self._batch_size + 1
+            return (self._total_len // self._batch_size) + 1
+
     def __getitem__(self, index):
         begin = index * self._batch_size
 
@@ -88,7 +89,14 @@ class DataGenerator(tf.keras.utils.Sequence):
             user_data = np.vstack([user_data,neg_user_data])
             item_data = np.vstack([item_data,neg_item_data])
             labels = np.ones(len(indices)*(self._negative + 1))
-
+        train_dataset = (
+            tf.data.Dataset
+            .from_tensor_slices((user_data,item_data),labels)
+            .repeat()
+            .shuffle(1025)
+            .batch(self._batch_size)
+            .prefetch(AUTO)
+        )
         return (user_data,item_data), labels
 
     def make_dok_mat(self):

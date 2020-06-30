@@ -2,6 +2,7 @@ from collections import Counter
 import numpy as np
 import pandas as pd
 import scipy.sparse as spr
+import heapq
 
 train_path = './data/train.json'
 val_path = './data/val.json'
@@ -91,3 +92,49 @@ class Preprocess:
             dec = dict((i,v) for i,v in enumerate(df))
 
             return enc, dec
+
+    def decoding_answer(self, prediction, model):
+        test_index = [i for i in range(self.n_train,self.n_train + self.n_val)]
+        for plylst_id in test_index:
+            map_song_score = dict()
+            plylst_array = np.full(self.n_song, plylst_id, dtype='int32')
+            song_array = np.arange(self.n_song)
+            predictions = model.predict((plylst_array,song_array), batch_size=1024,verbose=0)
+            for i in range(self.n_song):
+                map_song_score[i] = predictions[i]
+            ranklist = heapq.nlargest(200,map_song_score,key=map_song_score.get)
+            song_output = list(filter(lambda x: x not in self.plylst_songs_dict[plylst_id], ranklist))[:100]
+            song_decoded = list(map(lambda x: song_dec[x], song_output))
+            output.append({
+                'id':plylst_dec[plylst_id],
+                'songs' :song_decoded
+            })
+
+
+def eval(answer, model):
+    # answer : dict
+    #           key: plylst_id
+    #           value : songs
+    val_score = 0
+    for plylst_id in answer.keys():
+        map_song_score = dict()
+        users = np.full(n_songs, plylst_id, dtype='int32')
+        songs = np.arange(n_songs)
+        predictions = model.predict((users, songs), batch_size=1024, verbose=0)
+        for i in range(n_songs):
+            map_song_score[i] = predictions[i]
+
+        ranklist = heapq.nlargest(100,map_song_score,key=map_song_score.get)
+
+        val_score += ev._ndcg(answer[plylst_id], ranklist)
+
+    return val_score / len(answer)
+
+def make_val(train, val_index):
+    answer = dict()
+    for index in val_index:
+        songs = train['songs'][index]
+        n_s = len(songs)
+        answer[index] = songs[n_s//2:]
+        train['songs'][index] = songs[:n_s//2]
+    return answer
